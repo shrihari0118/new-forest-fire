@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Database } from 'lucide-react';
+import { MapPin, Database, Loader2, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { Region } from '../types';
 
 interface RegionSelectorProps {
   onRegionSelect: (region: Region) => void;
 }
+
+// API base - adjust if needed (e.g., set VITE_API_BASE_URL for dev)
+const API_BASE = (import.meta as any)?.env?.VITE_API_BASE_URL || '/api';
 
 const mockRegions: Region[] = [
   {
@@ -54,16 +57,47 @@ const mockRegions: Region[] = [
   }
 ];
 
+type PreprocessStatus = 'idle' | 'processing' | 'done' | 'error';
+
 const RegionSelector: React.FC<RegionSelectorProps> = ({ onRegionSelect }) => {
   const [selectedRegion, setSelectedRegion] = useState<string>('');
+  const [status, setStatus] = useState<PreprocessStatus>('idle');
+  const [result, setResult] = useState<any>(null);
+  const [error, setError] = useState<string>('');
 
-  const handleRegionChange = (regionId: string) => {
+  const triggerPreprocessing = async (region: Region) => {
+    setStatus('processing');
+    setResult(null);
+    setError('');
+    try {
+      const res = await fetch(`${API_BASE}/preprocess`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ regionId: region.id, regionName: region.name })
+      });
+      const data = await res.json();
+      if (!res.ok || data.ok === false) {
+        throw new Error(data?.detail || data?.message || 'Preprocessing failed');
+      }
+      setResult(data);
+      setStatus('done');
+    } catch (e: any) {
+      setError(e?.message || 'Failed to preprocess');
+      setStatus('error');
+    }
+  };
+
+  const handleRegionChange = async (regionId: string) => {
     const region = mockRegions.find(r => r.id === regionId);
     if (region) {
       setSelectedRegion(regionId);
       onRegionSelect(region);
+      // Kick off preprocessing immediately on selection
+      triggerPreprocessing(region);
     }
   };
+
+  const selected = mockRegions.find(r => r.id === selectedRegion);
 
   return (
     <motion.div
@@ -106,7 +140,7 @@ const RegionSelector: React.FC<RegionSelectorProps> = ({ onRegionSelect }) => {
             </select>
           </div>
 
-          {selectedRegion && (
+          {selected && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
@@ -115,7 +149,7 @@ const RegionSelector: React.FC<RegionSelectorProps> = ({ onRegionSelect }) => {
             >
               <div className="flex items-start space-x-2">
                 <Database className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-1" />
-                <div className="text-sm">
+                <div className="text-sm w-full">
                   <p className="font-medium text-gray-800 dark:text-gray-200 mb-3">Available Datasets:</p>
                   <div className="grid grid-cols-2 gap-3 text-gray-600 dark:text-gray-300">
                     <div className="flex items-center space-x-2">
@@ -135,20 +169,53 @@ const RegionSelector: React.FC<RegionSelectorProps> = ({ onRegionSelect }) => {
                       <span>Fire History</span>
                     </div>
                   </div>
+
+                  {/* Preprocess status panel */}
+                  <div className="mt-4">
+                    {status === 'processing' && (
+                      <div className="flex items-center p-3 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-100 rounded border border-yellow-200 dark:border-yellow-700">
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        <span>Preparing data for {selected.name}… Creating folders and extracting metadata.</span>
+                      </div>
+                    )}
+                    {status === 'done' && result && (
+                      <div className="p-3 bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-100 rounded border border-green-200 dark:border-green-700">
+                        <div className="flex items-center mb-1">
+                          <CheckCircle2 className="h-4 w-4 mr-2" />
+                          <span className="font-medium">Preprocessing complete</span>
+                        </div>
+                        <div className="text-xs opacity-80">
+                          <div>Region dir: <code className="break-all">{result.region_dir}</code></div>
+                          <div>Preprocessed dir: <code className="break-all">{result.preprocessed_dir}</code></div>
+                          <div>Files scanned: {result.files_scanned}</div>
+                          <div>Metadata files: {result.metadata_files_saved?.length || 0}</div>
+                          {result.message && <div className="mt-1">{result.message}</div>}
+                        </div>
+                      </div>
+                    )}
+                    {status === 'error' && (
+                      <div className="flex items-center p-3 bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-100 rounded border border-red-200 dark:border-red-700">
+                        <AlertTriangle className="h-4 w-4 mr-2" />
+                        <span>{error || 'Failed to preprocess data.'}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-              
+
               <div className="mt-4 pt-4 border-t border-blue-200 dark:border-blue-700">
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => {
-                    const region = mockRegions.find(r => r.id === selectedRegion);
-                    if (region) onRegionSelect(region);
+                    if (selected) {
+                      onRegionSelect(selected);
+                      triggerPreprocessing(selected);
+                    }
                   }}
                   className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium"
                 >
-                  Start Analysis for {mockRegions.find(r => r.id === selectedRegion)?.name}
+                  {status === 'processing' ? 'Processing…' : `Start Analysis for ${selected.name}`}
                 </motion.button>
               </div>
             </motion.div>
@@ -185,7 +252,7 @@ const RegionSelector: React.FC<RegionSelectorProps> = ({ onRegionSelect }) => {
                 selectedRegion === region.id ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400'
               }`} />
             </div>
-            
+
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-600 dark:text-gray-400">Area:</span>
