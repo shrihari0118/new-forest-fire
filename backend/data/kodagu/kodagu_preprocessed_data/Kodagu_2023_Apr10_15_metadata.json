@@ -1,5 +1,5 @@
 {
-  "file_path": "C:\\Users\\sadha\\new-forest-fire\\backend\\data\\kodagu\\Kodagu_2023_Apr10_15.tif",
+  "file_path": "C:\\Users\\lalit\\new-forest-fire\\backend\\data\\kodagu\\Kodagu_2023_Apr10_15.tif",
   "file_name": "Kodagu_2023_Apr10_15.tif",
   "file_size_bytes": 37287,
   "driver": "GTiff",
@@ -164,5 +164,5 @@
     "outlier_strategy": "IQR_clipping_1.5",
     "notes": "Stats (cleaned_stats) computed after impute+clip."
   },
-  "preview_png": "C:\\Users\\sadha\\new-forest-fire\\backend\\data\\kodagu\\kodagu_preprocessed_data\\Kodagu_2023_Apr10_15_preview.png"
+  "preview_png": "C:\\Users\\lalit\\new-forest-fire\\backend\\data\\kodagu\\kodagu_preprocessed_data\\Kodagu_2023_Apr10_15_preview.png"
 }
