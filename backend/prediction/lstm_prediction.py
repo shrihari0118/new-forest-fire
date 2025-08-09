@@ -92,7 +92,7 @@ def risk_analysis(region_name="Kodagu"):
         "pie_chart_path": pie_chart_path
     }
 
-# Example usage (uncomment to run as a script)
-# if __name__ == "__main__":
-#     result = risk_analysis("Kodagu")
-#     print(result)
+
+if __name__ == "__main__":
+     result = risk_analysis("Kodagu")
+     print(result)
