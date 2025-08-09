@@ -1,0 +1,23 @@
+{
+  "ok": true,
+  "region_input": "bastar",
+  "region_slug": "bastar",
+  "orig_region_id": null,
+  "orig_region_name": null,
+  "data_root": "C:\\Users\\lalit\\new-forest-fire\\backend\\data",
+  "region_dir": "C:\\Users\\lalit\\new-forest-fire\\backend\\data\\bastar",
+  "preprocessed_dir": "C:\\Users\\lalit\\new-forest-fire\\backend\\data\\bastar\\bastar_preprocessed_data",
+  "created": {
+    "region_dir_created": false,
+    "preprocessed_dir_created": false
+  },
+  "files_scanned": 1,
+  "metadata_files_saved": [
+    "C:\\Users\\lalit\\new-forest-fire\\backend\\data\\bastar\\bastar_preprocessed_data\\Bastar_2019_02_21_to_2019_02_25_metadata.json"
+  ],
+  "preview_files_saved": [
+    "C:\\Users\\lalit\\new-forest-fire\\backend\\data\\bastar\\bastar_preprocessed_data\\Bastar_2019_02_21_to_2019_02_25_preview.png"
+  ],
+  "duration_sec": 0.111,
+  "message": "Completed preprocessing."
+}
