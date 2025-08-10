@@ -12,25 +12,25 @@ const API_BASE = (import.meta as any)?.env?.VITE_API_BASE_URL || '/api';
 
 const mockRegions: Region[] = [
   {
-    id: 'uttarakhand-dehradun',
-    name: 'Dehradun District',
-    state: 'Uttarakhand',
-    area: 3088,
+    id: 'chhattisgarh-bastar',
+    name: 'Bastar District',
+    state: 'Chhattisgarh',
+    area: 6597, // update if you want the actual area
     bounds: {
-      center: [30.3165, 78.0322],
-      bounds: [[29.8, 77.5], [30.8, 78.5]]
-    },
+      center: [19.0743, 82.0087],
+      bounds: [[18.75, 81.55], [19.45, 82.25]]
+  },
     datasets: { dem: true, weather: true, lulc: true, fireHistory: true }
   },
   {
-    id: 'uttarakhand-nainital',
-    name: 'Nainital District',
-    state: 'Uttarakhand',
-    area: 4251,
+    id: 'madhya-pradesh-chhindwara',
+    name: 'Chhindwara District',
+    state: 'Madhya Pradesh',
+    area: 10293,
     bounds: {
-      center: [29.3803, 79.4636],
-      bounds: [[29.0, 79.0], [29.8, 80.0]]
-    },
+      center: [22.1417, 79.0333],
+        bounds: [[21.4667, 78.6667], [22.8167, 79.4000]]
+  },
     datasets: { dem: true, weather: true, lulc: true, fireHistory: true }
   },
   {
@@ -70,6 +70,7 @@ const RegionSelector: React.FC<RegionSelectorProps> = ({ onRegionSelect }) => {
     setResult(null);
     setError('');
     try {
+      // Backend now runs preprocessing -> segmentation -> prediction
       const res = await fetch(`${API_BASE}/preprocess`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -170,27 +171,52 @@ const RegionSelector: React.FC<RegionSelectorProps> = ({ onRegionSelect }) => {
                     </div>
                   </div>
 
-                  {/* Preprocess status panel */}
                   <div className="mt-4">
                     {status === 'processing' && (
                       <div className="flex items-center p-3 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-100 rounded border border-yellow-200 dark:border-yellow-700">
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        <span>Preparing data for {selected.name}… Creating folders and extracting metadata.</span>
+                        <span>Preparing data for {selected.name}… Creating folders, extracting metadata, and running segmentation.</span>
                       </div>
                     )}
                     {status === 'done' && result && (
-                      <div className="p-3 bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-100 rounded border border-green-200 dark:border-green-700">
-                        <div className="flex items-center mb-1">
-                          <CheckCircle2 className="h-4 w-4 mr-2" />
-                          <span className="font-medium">Preprocessing complete</span>
+                      <div className="space-y-3">
+                        <div className="p-3 bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-100 rounded border border-green-200 dark:border-green-700">
+                          <div className="flex items-center mb-1">
+                            <CheckCircle2 className="h-4 w-4 mr-2" />
+                            <span className="font-medium">Preprocessing complete</span>
+                          </div>
+                          <div className="text-xs opacity-80">
+                            <div>Region dir: <code className="break-all">{result.region_dir}</code></div>
+                            <div>Preprocessed dir: <code className="break-all">{result.preprocessed_dir}</code></div>
+                            <div>Files scanned: {result.files_scanned}</div>
+                            <div>Metadata files: {result.metadata_files_saved?.length || 0}</div>
+                            {result.message && <div className="mt-1">{result.message}</div>}
+                          </div>
                         </div>
-                        <div className="text-xs opacity-80">
-                          <div>Region dir: <code className="break-all">{result.region_dir}</code></div>
-                          <div>Preprocessed dir: <code className="break-all">{result.preprocessed_dir}</code></div>
-                          <div>Files scanned: {result.files_scanned}</div>
-                          <div>Metadata files: {result.metadata_files_saved?.length || 0}</div>
-                          {result.message && <div className="mt-1">{result.message}</div>}
-                        </div>
+
+                        {result.segmentation ? (
+                          result.segmentation.ok ? (
+                            <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-800 dark:text-indigo-100 rounded border border-indigo-200 dark:border-indigo-700">
+                              <div className="flex items-center mb-1">
+                                <CheckCircle2 className="h-4 w-4 mr-2" />
+                                <span className="font-medium">Segmentation complete</span>
+                              </div>
+                              <div className="text-xs opacity-80">
+                                <div>Segmented dir: <code className="break-all">{result.segmentation.segmented_dir}</code></div>
+                                <div>Mask file: <code className="break-all">{result.segmentation.mask_path}</code></div>
+                                <div>
+                                  Clusters: {result.segmentation.n_clusters} | Shape: {Array.isArray(result.segmentation.mask_shape) ? result.segmentation.mask_shape.join(' x ') : ''}
+                                </div>
+                                {result.segmentation.message && <div className="mt-1">{result.segmentation.message}</div>}
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex items-center p-3 bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-100 rounded border border-red-200 dark:border-red-700">
+                              <AlertTriangle className="h-4 w-4 mr-2" />
+                              <span>{result.segmentation.message || 'Segmentation failed.'}</span>
+                            </div>
+                          )
+                        ) : null}
                       </div>
                     )}
                     {status === 'error' && (

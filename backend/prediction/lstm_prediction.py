@@ -1,13 +1,17 @@
 import os
 import json
-import math
 from datetime import datetime
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List
 
 import numpy as np
-import rasterio
 
-from preprocessing.data_preprocessing import DATA_ROOT, to_region_slug
+try:
+    from preprocessing.data_preprocessing import DATA_ROOT, to_region_slug
+except ImportError:
+    DATA_ROOT = "data"
+
+    def to_region_slug(region: str) -> str:
+        return region.lower().replace(" ", "_").replace("-", "_")
 
 
 def _list_metadata_json(preprocessed_dir: str) -> List[str]:
@@ -23,199 +27,121 @@ def _list_metadata_json(preprocessed_dir: str) -> List[str]:
     )
 
 
-def _choose_reference_tif(meta_files: List[str]) -> Optional[Dict]:
-    best = None
-    best_area = -1
-    for jf in meta_files:
-        try:
-            with open(jf, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            w = int(data.get("width", 0))
-            h = int(data.get("height", 0))
-            area = w * h
-            if area > best_area:
-                best_area = area
-                best = data
-        except Exception:
-            continue
-    return best
-
-
-def _pixel_area_km2_from_meta(meta: Dict) -> float:
-    # Approximate pixel area using geographic CRS (degrees)
-    # area ≈ (111.32 km * dLat) * (111.32 km * dLon * cos(latitude))
-    res = meta.get("res", [None, None])
-    if not res or res[0] is None or res[1] is None:
-        # Fallback small-pixel assumption (1km)
-        return 1.0
-    dlon = float(res[0])
-    dlat = float(res[1])
-    bounds = meta.get("bounds", {})
-    top = float(bounds.get("top", 0.0))
-    bottom = float(bounds.get("bottom", 0.0))
-    mean_lat = (top + bottom) / 2.0
-    mean_lat_rad = math.radians(mean_lat)
-    km_per_deg = 111.32
-    lat_km = abs(dlat) * km_per_deg
-    lon_km = abs(dlon) * km_per_deg * max(math.cos(mean_lat_rad), 1e-6)
-    return lat_km * lon_km
-
-
-def _impute_with_median(arr: np.ndarray, fill_value: float) -> np.ndarray:
-    out = arr.astype(np.float32, copy=True)
-    mask = ~np.isfinite(out)
-    out[mask] = float(fill_value)
-    return out
-
-
 def risk_analysis(region: str) -> Dict[str, object]:
     """
-    Compute forest fire risk distribution using slope/aspect from GeoTIFF
-    and segmentation mask. Outputs high/moderate/low percentages and areas.
+    Computes fire-risk areas (km^2) by thresholding the risk map and
+    returns the values for frontend visualization. No charts are created or displayed.
     """
     try:
         region_slug = to_region_slug(region)
         region_dir = os.path.join(os.path.abspath(DATA_ROOT), region_slug)
         preprocessed_dir = os.path.join(region_dir, f"{region_slug}_preprocessed_data")
         segmented_dir = os.path.join(region_dir, f"{region_slug}_segmented_data")
-        mask_path = os.path.join(segmented_dir, f"{region_slug}_mask.npy")
+        prediction_dir = os.path.join(region_dir, f"{region_slug}_prediction")
+        os.makedirs(prediction_dir, exist_ok=True)
 
+        # Find the first _metadata.json file in preprocessed_dir
         meta_files = _list_metadata_json(preprocessed_dir)
         if not meta_files:
             return {
                 "ok": False,
-                "region_slug": region_slug,
-                "message": f"No metadata found in {preprocessed_dir}. Run preprocessing first."
+                "message": "No metadata JSON found in preprocessed data.",
+                "region": region_slug,
             }
 
-        ref = _choose_reference_tif(meta_files)
-        if not ref or not ref.get("file_path"):
+        # Use the first metadata file as reference
+        meta_path = meta_files[0]
+        with open(meta_path, "r", encoding="utf-8") as f:
+            meta = json.load(f)
+
+        base_name = os.path.basename(meta_path).replace("_metadata.json", "")
+
+        # Load the risk map (.npy). By convention this is often named *_mask.npy here.
+        risk_map_path = os.path.join(segmented_dir, f"{base_name}_mask.npy")
+        if not os.path.exists(risk_map_path):
             return {
                 "ok": False,
-                "region_slug": region_slug,
-                "message": "Could not determine reference GeoTIFF from metadata."
+                "message": f"No risk map .npy data found for {base_name}. Expected at: {risk_map_path}",
+                "region": region_slug,
             }
 
-        tif_path = ref["file_path"]
-        pixel_area_km2 = _pixel_area_km2_from_meta(ref)
-
-        # Read slope (band 1), aspect (band 2) - based on your TIFF convention
-        with rasterio.open(tif_path) as src:
-            h, w = src.height, src.width
-
-            # Default medians from preprocessing (if present)
-            med_slope = None
-            med_aspect = None
-            for b in ref.get("per_band", []):
-                if b.get("band_index") == 1:
-                    med_slope = float(b.get("median_imputed_value", 0.0))
-                if b.get("band_index") == 2:
-                    med_aspect = float(b.get("median_imputed_value", 0.0))
-            if med_slope is None:  # safe fallbacks
-                med_slope = 0.0
-            if med_aspect is None:
-                med_aspect = 0.0
-
-            slope = src.read(1, masked=True).astype(np.float32)
-            aspect = src.read(2, masked=True).astype(np.float32)
-
-            slope = np.where(slope.mask, med_slope, slope.data).astype(np.float32)
-            aspect = np.where(aspect.mask, med_aspect, aspect.data).astype(np.float32)
-
-        # Derive risk score per pixel: combine slope and aspect
-        # Normalize slope (cap at 45° for 0..1), southness from aspect (0=north, 1=south)
-        slope_norm = np.clip(slope, 0.0, 45.0) / 45.0
-        aspect_rad = np.deg2rad(aspect)
-        southness = 0.5 * (1.0 - np.cos(aspect_rad))  # 0 at north, 1 at south
-
-        # Weighted risk score (0..1)
-        risk_score = 0.65 * slope_norm + 0.35 * southness
-
-        # Load segmentation mask if present; aggregate risk at segment level
-        if os.path.isfile(mask_path):
-            mask = np.load(mask_path)
-            if mask.shape != (h, w):
-                # If mismatch, fallback to per-pixel classification
-                mask = None
+        arr = np.load(risk_map_path)
+        # Normalize to 2D for thresholding
+        if arr.ndim == 3:
+            # If multi-channel, average across channels; if shape (H, W, 1), squeeze it.
+            if arr.shape[2] == 1:
+                arr2d = arr[:, :, 0]
+            else:
+                arr2d = arr.mean(axis=2)
+        elif arr.ndim == 2:
+            arr2d = arr
         else:
-            mask = None
+            return {
+                "ok": False,
+                "message": f"Unexpected array shape for risk map: {arr.shape}",
+                "region": region_slug,
+            }
 
-        high_count = 0
-        moderate_count = 0
-        low_count = 0
+        # === RISK CALCULATION LOGIC ===
+        HIGH_RISK_THRESHOLD = 0.7
+        MODERATE_RISK_THRESHOLD = 0.4
 
-        if mask is not None:
-            # Segment-wise classification: each segment gets its mean risk class
-            unique_ids = np.unique(mask)
-            for seg_id in unique_ids:
-                seg_mask = (mask == seg_id)
-                seg_mean = float(risk_score[seg_mask].mean())
-                if seg_mean >= 0.66:
-                    high_count += int(seg_mask.sum())
-                elif seg_mean >= 0.33:
-                    moderate_count += int(seg_mask.sum())
-                else:
-                    low_count += int(seg_mask.sum())
+        # Count pixels per risk band
+        high_mask = arr2d > HIGH_RISK_THRESHOLD
+        moderate_mask = (arr2d > MODERATE_RISK_THRESHOLD) & (~high_mask)
+        low_mask = ~high_mask & ~moderate_mask
+
+        high_count = int(np.count_nonzero(high_mask))
+        moderate_count = int(np.count_nonzero(moderate_mask))
+        low_count = int(np.count_nonzero(low_mask))
+
+        total_pixels = high_count + moderate_count + low_count
+
+        if total_pixels > 0:
+            high_percent = (high_count / total_pixels) * 100.0
+            moderate_percent = (moderate_count / total_pixels) * 100.0
+            low_percent = (low_count / total_pixels) * 100.0
         else:
-            # Per-pixel classification
-            high_count = int(np.sum(risk_score >= 0.66))
-            moderate_count = int(np.sum((risk_score >= 0.33) & (risk_score < 0.66)))
-            low_count = int(np.sum(risk_score < 0.33))
+            high_percent = moderate_percent = low_percent = 0.0
 
-        total_px = max(1, high_count + moderate_count + low_count)  # avoid div by zero
-
-        # Areas (km²)
+        pixel_area_km2 = float(meta.get("pixel_area_km2", 1.0))
         high_area = high_count * pixel_area_km2
         moderate_area = moderate_count * pixel_area_km2
         low_area = low_count * pixel_area_km2
-        total_area = high_area + moderate_area + low_area
 
-        # Percentages
-        high_pct = 100.0 * high_area / total_area if total_area > 0 else 0.0
-        moderate_pct = 100.0 * moderate_area / total_area if total_area > 0 else 0.0
-        low_pct = 100.0 * low_area / total_area if total_area > 0 else 0.0
-
-        # Overall risk level = largest share
-        shares = [("HIGH", high_pct), ("MODERATE", moderate_pct), ("LOW", low_pct)]
+        # Overall risk and confidence
+        shares = [("HIGH", high_percent), ("MODERATE", moderate_percent), ("LOW", low_percent)]
         shares.sort(key=lambda x: x[1], reverse=True)
         overall_risk = shares[0][0]
-
-        # Simple confidence proxy: separation between top-2 classes
-        top = shares[0][1]
-        second = shares[1][1]
+        top, second = shares[0][1], shares[1][1]
         confidence = max(0.55, min(0.99, 0.6 + 0.4 * ((top - second) / 100.0)))
 
-        result = {
+        return {
             "ok": True,
-            "region_slug": region_slug,
-            "used_tif": tif_path,
-            "mask_path": mask_path if mask is not None else None,
-            "pixel_area_km2": pixel_area_km2,
-            "total_area_km2": total_area,
+            "region": region_slug,
+            "high_risk_percent": high_percent,
+            "moderate_risk_percent": moderate_percent,
+            "low_risk_percent": low_percent,
             "high_risk_area_km2": high_area,
             "moderate_risk_area_km2": moderate_area,
             "low_risk_area_km2": low_area,
-            "high_risk_percent": high_pct,
-            "moderate_risk_percent": moderate_pct,
-            "low_risk_percent": low_pct,
             "overall_risk_level": overall_risk,
-            "confidence": confidence,  # 0..1
+            "confidence": confidence,
             "timestamp": datetime.utcnow().isoformat() + "Z",
-            "message": "Risk analysis computed from slope/aspect and segmentation."
         }
-        return result
 
     except Exception as e:
         return {
             "ok": False,
-            "region_slug": to_region_slug(region),
-            "message": f"Risk analysis failed: {e}"
+            "region": region,
+            "message": f"Risk analysis failed: {e}",
         }
 
 
 if __name__ == "__main__":
-    # CLI test: python -m prediction.lstm_prediction kodagu
     import sys
+
     reg = sys.argv[1] if len(sys.argv) > 1 else "kodagu"
     out = risk_analysis(reg)
+    # Print JSON only; no charts are displayed or saved.
     print(json.dumps(out, indent=2))

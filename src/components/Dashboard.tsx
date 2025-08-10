@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   Activity,
@@ -24,6 +24,8 @@ interface DashboardProps {
   onNavigate?: (view: string) => void;
 }
 
+const API_BASE = (import.meta as any)?.env?.VITE_API_BASE_URL || '/api';
+
 const Dashboard: React.FC<DashboardProps> = ({
   selectedRegion,
   predictionData,
@@ -32,32 +34,65 @@ const Dashboard: React.FC<DashboardProps> = ({
   processingSteps,
   onNavigate
 }) => {
+  const [localPrediction, setLocalPrediction] = useState<PredictionData | null>(null);
+
+  // Fetch dynamic prediction if not provided
+  useEffect(() => {
+    const fetchPrediction = async () => {
+      if (!selectedRegion || predictionData) {
+        setLocalPrediction(predictionData || null);
+        return;
+      }
+      try {
+        const region = selectedRegion.id || selectedRegion.name;
+        const res = await fetch(`${API_BASE}/prediction?region=${encodeURIComponent(region)}`);
+        const data = await res.json();
+        if (!res.ok || data.ok === false) throw new Error(data?.detail || data?.message || 'Prediction failed');
+        const mapped: PredictionData = {
+          highRiskArea: data.high_risk_area_km2 ?? 0,
+          moderateRiskArea: data.moderate_risk_area_km2 ?? 0,
+          lowRiskArea: data.low_risk_area_km2 ?? 0,
+          confidence: typeof data.confidence === 'number' ? data.confidence : 0.8,
+          timestamp: new Date(data.timestamp || Date.now()),
+          overallRiskLevel: data.overall_risk_level || undefined
+        } as any;
+        setLocalPrediction(mapped);
+      } catch (e) {
+        console.error(e);
+        setLocalPrediction(null);
+      }
+    };
+    fetchPrediction();
+  }, [selectedRegion, predictionData]);
+
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
+    visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
   };
 
   const itemVariants = {
     hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: { duration: 0.5 }
-    }
+    visible: { y: 0, opacity: 1, transition: { duration: 0.5 } }
   };
 
+  const pd = predictionData || localPrediction;
+
+  // Derive label if not explicitly provided
+  const riskLevel = (() => {
+    if (!pd) return 'N/A';
+    if ((pd as any).overallRiskLevel) return (pd as any).overallRiskLevel;
+    const { highRiskArea, moderateRiskArea, lowRiskArea } = pd;
+    const maxArea = Math.max(highRiskArea, moderateRiskArea, lowRiskArea);
+    if (maxArea === highRiskArea) return 'HIGH';
+    if (maxArea === moderateRiskArea) return 'MODERATE';
+    return 'LOW';
+  })();
+
+  const confidencePct = pd ? `${(pd.confidence * 100).toFixed(1)}%` : 'N/A';
+  const lastUpdate = pd ? pd.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A';
+
   return (
-    <motion.div
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-      className="space-y-6"
-    >
+    <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-6">
       {/* Header */}
       <motion.div variants={itemVariants} className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
@@ -89,7 +124,7 @@ const Dashboard: React.FC<DashboardProps> = ({
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Risk Level</p>
               <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                {predictionData ? 'HIGH' : 'N/A'}
+                {riskLevel}
               </p>
             </div>
             <div className="p-3 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
@@ -103,7 +138,7 @@ const Dashboard: React.FC<DashboardProps> = ({
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Model Confidence</p>
               <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                {predictionData ? `${(predictionData.confidence * 100).toFixed(1)}%` : 'N/A'}
+                {confidencePct}
               </p>
             </div>
             <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
@@ -117,7 +152,7 @@ const Dashboard: React.FC<DashboardProps> = ({
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Last Update</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                {predictionData ? predictionData.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'}
+                {lastUpdate}
               </p>
             </div>
             <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
@@ -127,7 +162,7 @@ const Dashboard: React.FC<DashboardProps> = ({
         </div>
       </motion.div>
 
-      {/* Current Weather Conditions */}
+      {/* Current Weather Conditions (static demo) */}
       <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
@@ -246,7 +281,7 @@ const Dashboard: React.FC<DashboardProps> = ({
             <Activity className="h-6 w-6 text-blue-600 dark:text-blue-400 mb-2" />
             <p className="text-sm font-medium text-blue-700 dark:text-blue-300">Run New Analysis</p>
           </motion.button>
-          
+
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
@@ -256,7 +291,7 @@ const Dashboard: React.FC<DashboardProps> = ({
             <Play className="h-6 w-6 text-orange-600 dark:text-orange-400 mb-2" />
             <p className="text-sm font-medium text-orange-700 dark:text-orange-300">Start Simulation</p>
           </motion.button>
-          
+
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
