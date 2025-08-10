@@ -26,6 +26,22 @@ interface DashboardProps {
 
 const API_BASE = (import.meta as any)?.env?.VITE_API_BASE_URL || '/api';
 
+// Helpers to safely compute the dominant risk level
+const toNum = (v: unknown) => {
+  const n = typeof v === 'string' ? parseFloat(v) : Number(v);
+  return Number.isFinite(n) ? n : 0;
+};
+
+const getDominantRiskLevel = (low: unknown, moderate: unknown, high: unknown) => {
+  const l = toNum(low);
+  const m = toNum(moderate);
+  const h = toNum(high);
+  const max = Math.max(l, m, h);
+  if (max === h) return 'HIGH';
+  if (max === m) return 'MODERATE';
+  return 'LOW';
+};
+
 const Dashboard: React.FC<DashboardProps> = ({
   selectedRegion,
   predictionData,
@@ -39,7 +55,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   // Fetch dynamic prediction if not provided
   useEffect(() => {
     const fetchPrediction = async () => {
-      if (!selectedRegion || predictionData) {
+      if (!selectedRegion) {
         setLocalPrediction(predictionData || null);
         return;
       }
@@ -52,6 +68,11 @@ const Dashboard: React.FC<DashboardProps> = ({
           highRiskArea: data.high_risk_area_km2 ?? 0,
           moderateRiskArea: data.moderate_risk_area_km2 ?? 0,
           lowRiskArea: data.low_risk_area_km2 ?? 0,
+
+            highRiskPercent: data.high_risk_percent ?? undefined,
+            moderateRiskPercent: data.moderate_risk_percent ?? undefined,
+            lowRiskPercent: data.low_risk_percent ?? undefined,
+
           confidence: typeof data.confidence === 'number' ? data.confidence : 0.8,
           timestamp: new Date(data.timestamp || Date.now()),
           overallRiskLevel: data.overall_risk_level || undefined
@@ -75,18 +96,40 @@ const Dashboard: React.FC<DashboardProps> = ({
     visible: { y: 0, opacity: 1, transition: { duration: 0.5 } }
   };
 
-  const pd = predictionData || localPrediction;
+  const pd = localPrediction ?? predictionData;
 
-  // Derive label if not explicitly provided
-  const riskLevel = (() => {
-    if (!pd) return 'N/A';
-    if ((pd as any).overallRiskLevel) return (pd as any).overallRiskLevel;
-    const { highRiskArea, moderateRiskArea, lowRiskArea } = pd;
-    const maxArea = Math.max(highRiskArea, moderateRiskArea, lowRiskArea);
-    if (maxArea === highRiskArea) return 'HIGH';
-    if (maxArea === moderateRiskArea) return 'MODERATE';
-    return 'LOW';
-  })();
+// Derive label if not explicitly provided
+// Derive label (prefer backend level, then percents, then areas)
+// Derive label (prefer percents -> areas -> backend label)
+const riskLevel = React.useMemo(() => {
+  if (!pd) return 'N/A';
+  const anyPd = pd as any;
+
+  // Prefer percentages (matches donut chart)
+  const lPct = toNum(anyPd.lowRiskPercent ?? anyPd.low_risk_percent);
+  const mPct = toNum(anyPd.moderateRiskPercent ?? anyPd.moderate_risk_percent);
+  const hPct = toNum(anyPd.highRiskPercent ?? anyPd.high_risk_percent);
+
+  if (lPct + mPct + hPct > 0) {
+    return getDominantRiskLevel(lPct, mPct, hPct);
+  }
+
+  // Fallback to areas
+  const lArea = toNum(anyPd.lowRiskArea ?? anyPd.low_risk_area_km2);
+  const mArea = toNum(anyPd.moderateRiskArea ?? anyPd.moderate_risk_area_km2);
+  const hArea = toNum(anyPd.highRiskArea ?? anyPd.high_risk_area_km2);
+
+  if (lArea + mArea + hArea > 0) {
+    return getDominantRiskLevel(lArea, mArea, hArea);
+  }
+
+  // Last fallback: backend-provided overall level
+  if (anyPd.overallRiskLevel ?? anyPd.overall_risk_level) {
+    return String(anyPd.overallRiskLevel ?? anyPd.overall_risk_level).toUpperCase();
+  }
+
+  return 'N/A';
+}, [pd]);
 
   const confidencePct = pd ? `${(pd.confidence * 100).toFixed(1)}%` : 'N/A';
   const lastUpdate = pd ? pd.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A';
