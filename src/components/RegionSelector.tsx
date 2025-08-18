@@ -34,16 +34,16 @@ const mockRegions: Region[] = [
     datasets: { dem: true, weather: true, lulc: true, fireHistory: true }
   },
   {
-    id: 'himachal-shimla',
-    name: 'Shimla District',
-    state: 'Himachal Pradesh',
-    area: 5131,
-    bounds: {
-      center: [31.1048, 77.1734],
-      bounds: [[30.5, 76.5], [31.7, 78.0]]
-    },
-    datasets: { dem: true, weather: true, lulc: true, fireHistory: true }
+  "id": "kerala-wayanad",
+  "name": "Wayanad District",
+  "state": "Kerala",
+  "area": 2132,
+  "bounds": {
+    "center": [11.70, 76.13],
+    "bounds": [[11.40, 75.85], [12.00, 76.45]]
   },
+  "datasets": { "dem": true, "weather": true, "lulc": true, "fireHistory": true }
+},
   {
     id: 'karnataka-kodagu',
     name: 'Kodagu District',

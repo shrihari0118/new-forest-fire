@@ -11,6 +11,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 
+
 interface SidebarProps {
   activeView: string;
   onViewChange: (view: string) => void;
@@ -25,6 +26,7 @@ const navigationItems = [
   { id: 'download', label: 'Download Reports', icon: Download },
   { id: 'settings', label: 'Settings', icon: Settings }
 ];
+
 
 const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange }) => {
   return (
@@ -65,25 +67,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange }) => {
           })}
         </nav>
 
-        <div className="mt-8 p-4 bg-gradient-to-br from-blue-50 to-orange-50 dark:from-blue-900/20 dark:to-orange-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
-          <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">
-            Quick Stats
-          </h3>
-          <div className="space-y-2 text-xs">
-            <div className="flex justify-between">
-              <span className="text-gray-600 dark:text-gray-400">Active Regions:</span>
-              <span className="font-medium text-gray-900 dark:text-white">4</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600 dark:text-gray-400">Last Update:</span>
-              <span className="font-medium text-gray-900 dark:text-white">2 min ago</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600 dark:text-gray-400">Model Accuracy:</span>
-              <span className="font-medium text-green-600 dark:text-green-400">94.2%</span>
-            </div>
-          </div>
-        </div>
+        
       </div>
     </aside>
   );

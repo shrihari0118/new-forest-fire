@@ -1,0 +1,230 @@
+{
+  "file_path": "C:\\Users\\sadha\\new-forest-fire\\backend\\data\\wayanad\\Wayanad_2019_02_21_to_2019_02_25.tif",
+  "file_name": "Wayanad_2019_02_21_to_2019_02_25.tif",
+  "file_size_bytes": 36959,
+  "driver": "GTiff",
+  "dtype": "float32",
+  "width": 75,
+  "height": 60,
+  "count": 6,
+  "crs": "EPSG:4326",
+  "transform": [
+    0.008983152841195215,
+    0.0,
+    75.76391106264045,
+    0.0,
+    -0.008983152841195215,
+    11.974542737313222,
+    0.0,
+    0.0,
+    1.0
+  ],
+  "bounds": {
+    "left": 75.76391106264045,
+    "bottom": 11.43555356684151,
+    "right": 76.43764752573009,
+    "top": 11.974542737313222
+  },
+  "res": [
+    0.008983152841195215,
+    0.008983152841195215
+  ],
+  "nodata": null,
+  "global_tags": {
+    "AREA_OR_POINT": "Area"
+  },
+  "per_band": [
+    {
+      "band_index": 1,
+      "raw_stats": {
+        "min": -9999.0,
+        "max": -9999.0,
+        "mean": -9999.0,
+        "std": 0.0,
+        "median": -9999.0,
+        "q1": -9999.0,
+        "q3": -9999.0,
+        "iqr": 0.0
+      },
+      "cleaned_stats": {
+        "min": -9999.0,
+        "max": -9999.0,
+        "mean": -9999.0,
+        "std": 0.0,
+        "median": -9999.0,
+        "q1": -9999.0,
+        "q3": -9999.0,
+        "iqr": 0.0
+      },
+      "pct_missing": 0.0,
+      "pct_outliers_clipped": 0.0,
+      "clip_bounds": [
+        -9999.0,
+        -9999.0
+      ],
+      "median_imputed_value": -9999.0,
+      "tags": {}
+    },
+    {
+      "band_index": 2,
+      "raw_stats": {
+        "min": -9999.0,
+        "max": -9999.0,
+        "mean": -9999.0,
+        "std": 0.0,
+        "median": -9999.0,
+        "q1": -9999.0,
+        "q3": -9999.0,
+        "iqr": 0.0
+      },
+      "cleaned_stats": {
+        "min": -9999.0,
+        "max": -9999.0,
+        "mean": -9999.0,
+        "std": 0.0,
+        "median": -9999.0,
+        "q1": -9999.0,
+        "q3": -9999.0,
+        "iqr": 0.0
+      },
+      "pct_missing": 0.0,
+      "pct_outliers_clipped": 0.0,
+      "clip_bounds": [
+        -9999.0,
+        -9999.0
+      ],
+      "median_imputed_value": -9999.0,
+      "tags": {}
+    },
+    {
+      "band_index": 3,
+      "raw_stats": {
+        "min": 0.0,
+        "max": 32.0,
+        "mean": 4.090888977050781,
+        "std": 5.055642127990723,
+        "median": 2.0,
+        "q1": 1.0,
+        "q3": 5.0,
+        "iqr": 4.0
+      },
+      "cleaned_stats": {
+        "min": 0.0,
+        "max": 11.0,
+        "mean": 3.5486667156219482,
+        "std": 3.728161334991455,
+        "median": 2.0,
+        "q1": 1.0,
+        "q3": 5.0,
+        "iqr": 4.0
+      },
+      "pct_missing": 0.0,
+      "pct_outliers_clipped": 11.311111111111112,
+      "clip_bounds": [
+        -5.0,
+        11.0
+      ],
+      "median_imputed_value": 2.0,
+      "tags": {}
+    },
+    {
+      "band_index": 4,
+      "raw_stats": {
+        "min": 0.0,
+        "max": 359.0,
+        "mean": 183.22332763671875,
+        "std": 105.09383392333984,
+        "median": 192.0,
+        "q1": 90.0,
+        "q3": 271.25,
+        "iqr": 181.25
+      },
+      "cleaned_stats": {
+        "min": 0.0,
+        "max": 359.0,
+        "mean": 183.22332763671875,
+        "std": 105.09383392333984,
+        "median": 192.0,
+        "q1": 90.0,
+        "q3": 271.25,
+        "iqr": 181.25
+      },
+      "pct_missing": 0.0,
+      "pct_outliers_clipped": 0.0,
+      "clip_bounds": [
+        -181.875,
+        543.125
+      ],
+      "median_imputed_value": 192.0,
+      "tags": {}
+    },
+    {
+      "band_index": 5,
+      "raw_stats": {
+        "min": 11.440045356750488,
+        "max": 11.970050811767578,
+        "mean": 11.705048561096191,
+        "std": 0.15557117760181427,
+        "median": 11.705047607421875,
+        "q1": 11.57254695892334,
+        "q3": 11.837550163269043,
+        "iqr": 0.2650032043457031
+      },
+      "cleaned_stats": {
+        "min": 11.440045356750488,
+        "max": 11.970050811767578,
+        "mean": 11.705048561096191,
+        "std": 0.15557117760181427,
+        "median": 11.705047607421875,
+        "q1": 11.57254695892334,
+        "q3": 11.837550163269043,
+        "iqr": 0.2650032043457031
+      },
+      "pct_missing": 0.0,
+      "pct_outliers_clipped": 0.0,
+      "clip_bounds": [
+        11.175042152404785,
+        12.235054969787598
+      ],
+      "median_imputed_value": 11.705047607421875,
+      "tags": {}
+    },
+    {
+      "band_index": 6,
+      "raw_stats": {
+        "min": 75.76840209960938,
+        "max": 76.43315887451172,
+        "mean": 76.10077667236328,
+        "std": 0.19447371363639832,
+        "median": 76.10077667236328,
+        "q1": 75.93009948730469,
+        "q3": 76.2714614868164,
+        "iqr": 0.34136199951171875
+      },
+      "cleaned_stats": {
+        "min": 75.76840209960938,
+        "max": 76.43315887451172,
+        "mean": 76.10077667236328,
+        "std": 0.19447371363639832,
+        "median": 76.10077667236328,
+        "q1": 75.93009948730469,
+        "q3": 76.2714614868164,
+        "iqr": 0.34136199951171875
+      },
+      "pct_missing": 0.0,
+      "pct_outliers_clipped": 0.0,
+      "clip_bounds": [
+        75.41806030273438,
+        76.78350830078125
+      ],
+      "median_imputed_value": 76.10077667236328,
+      "tags": {}
+    }
+  ],
+  "cleaning": {
+    "missing_strategy": "median_imputation",
+    "outlier_strategy": "IQR_clipping_1.5",
+    "notes": "Stats (cleaned_stats) computed after impute+clip."
+  },
+  "preview_png": "C:\\Users\\sadha\\new-forest-fire\\backend\\data\\wayanad\\wayanad_preprocessed_data\\Wayanad_2019_02_21_to_2019_02_25_preview.png"
+}

@@ -1,0 +1,230 @@
+{
+  "file_path": "C:\\Users\\sadha\\new-forest-fire\\backend\\data\\chhindwara\\Chhindwara_Apr10_15_2022.tif",
+  "file_name": "Chhindwara_Apr10_15_2022.tif",
+  "file_size_bytes": 136545,
+  "driver": "GTiff",
+  "dtype": "float32",
+  "width": 130,
+  "height": 152,
+  "count": 6,
+  "crs": "EPSG:4326",
+  "transform": [
+    0.008983152841195215,
+    0.0,
+    78.24326124681032,
+    0.0,
+    -0.008983152841195215,
+    22.82619136947704,
+    0.0,
+    0.0,
+    1.0
+  ],
+  "bounds": {
+    "left": 78.24326124681032,
+    "bottom": 21.46075213761537,
+    "right": 79.4110711161657,
+    "top": 22.82619136947704
+  },
+  "res": [
+    0.008983152841195215,
+    0.008983152841195215
+  ],
+  "nodata": null,
+  "global_tags": {
+    "AREA_OR_POINT": "Area"
+  },
+  "per_band": [
+    {
+      "band_index": 1,
+      "raw_stats": {
+        "min": -9999.0,
+        "max": -9999.0,
+        "mean": -9999.0,
+        "std": 0.0,
+        "median": -9999.0,
+        "q1": -9999.0,
+        "q3": -9999.0,
+        "iqr": 0.0
+      },
+      "cleaned_stats": {
+        "min": -9999.0,
+        "max": -9999.0,
+        "mean": -9999.0,
+        "std": 0.0,
+        "median": -9999.0,
+        "q1": -9999.0,
+        "q3": -9999.0,
+        "iqr": 0.0
+      },
+      "pct_missing": 0.6578947368421053,
+      "pct_outliers_clipped": 0.0,
+      "clip_bounds": [
+        -9999.0,
+        -9999.0
+      ],
+      "median_imputed_value": -9999.0,
+      "tags": {}
+    },
+    {
+      "band_index": 2,
+      "raw_stats": {
+        "min": -9999.0,
+        "max": -9999.0,
+        "mean": -9999.0,
+        "std": 0.0,
+        "median": -9999.0,
+        "q1": -9999.0,
+        "q3": -9999.0,
+        "iqr": 0.0
+      },
+      "cleaned_stats": {
+        "min": -9999.0,
+        "max": -9999.0,
+        "mean": -9999.0,
+        "std": 0.0,
+        "median": -9999.0,
+        "q1": -9999.0,
+        "q3": -9999.0,
+        "iqr": 0.0
+      },
+      "pct_missing": 0.6578947368421053,
+      "pct_outliers_clipped": 0.0,
+      "clip_bounds": [
+        -9999.0,
+        -9999.0
+      ],
+      "median_imputed_value": -9999.0,
+      "tags": {}
+    },
+    {
+      "band_index": 3,
+      "raw_stats": {
+        "min": 0.0,
+        "max": 18.0,
+        "mean": 1.685837984085083,
+        "std": 1.908657431602478,
+        "median": 1.0,
+        "q1": 1.0,
+        "q3": 2.0,
+        "iqr": 1.0
+      },
+      "cleaned_stats": {
+        "min": 0.0,
+        "max": 3.5,
+        "mean": 1.410703420639038,
+        "std": 1.0953454971313477,
+        "median": 1.0,
+        "q1": 1.0,
+        "q3": 2.0,
+        "iqr": 1.0
+      },
+      "pct_missing": 0.6578947368421053,
+      "pct_outliers_clipped": 10.70344129554656,
+      "clip_bounds": [
+        -0.5,
+        3.5
+      ],
+      "median_imputed_value": 1.0,
+      "tags": {}
+    },
+    {
+      "band_index": 4,
+      "raw_stats": {
+        "min": 0.0,
+        "max": 359.0,
+        "mean": 173.07366943359375,
+        "std": 102.84376525878906,
+        "median": 167.0,
+        "q1": 90.0,
+        "q3": 257.0,
+        "iqr": 167.0
+      },
+      "cleaned_stats": {
+        "min": 0.0,
+        "max": 359.0,
+        "mean": 173.03370666503906,
+        "std": 102.5060806274414,
+        "median": 167.0,
+        "q1": 90.0,
+        "q3": 257.0,
+        "iqr": 167.0
+      },
+      "pct_missing": 0.6578947368421053,
+      "pct_outliers_clipped": 0.0,
+      "clip_bounds": [
+        -160.5,
+        507.5
+      ],
+      "median_imputed_value": 167.0,
+      "tags": {}
+    },
+    {
+      "band_index": 5,
+      "raw_stats": {
+        "min": 21.46524429321289,
+        "max": 22.81271743774414,
+        "mean": 22.138980865478516,
+        "std": 0.39156657457351685,
+        "median": 22.138980865478516,
+        "q1": 21.79762077331543,
+        "q3": 22.48033905029297,
+        "iqr": 0.6827182769775391
+      },
+      "cleaned_stats": {
+        "min": 21.46524429321289,
+        "max": 22.81271743774414,
+        "mean": 22.138980865478516,
+        "std": 0.39027640223503113,
+        "median": 22.138980865478516,
+        "q1": 21.804359436035156,
+        "q3": 22.473602294921875,
+        "iqr": 0.6692428588867188
+      },
+      "pct_missing": 0.6578947368421053,
+      "pct_outliers_clipped": 0.0,
+      "clip_bounds": [
+        20.773544311523438,
+        23.504417419433594
+      ],
+      "median_imputed_value": 22.138980865478516,
+      "tags": {}
+    },
+    {
+      "band_index": 6,
+      "raw_stats": {
+        "min": 78.24774932861328,
+        "max": 79.40657806396484,
+        "mean": 78.8271713256836,
+        "std": 0.33710774779319763,
+        "median": 78.82716369628906,
+        "q1": 78.53521728515625,
+        "q3": 79.1191177368164,
+        "iqr": 0.5839004516601562
+      },
+      "cleaned_stats": {
+        "min": 78.24774932861328,
+        "max": 79.40657806396484,
+        "mean": 78.82716369628906,
+        "std": 0.33599698543548584,
+        "median": 78.82716369628906,
+        "q1": 78.53521728515625,
+        "q3": 79.1191177368164,
+        "iqr": 0.5839004516601562
+      },
+      "pct_missing": 0.6578947368421053,
+      "pct_outliers_clipped": 0.0,
+      "clip_bounds": [
+        77.65936279296875,
+        79.99496459960938
+      ],
+      "median_imputed_value": 78.82716369628906,
+      "tags": {}
+    }
+  ],
+  "cleaning": {
+    "missing_strategy": "median_imputation",
+    "outlier_strategy": "IQR_clipping_1.5",
+    "notes": "Stats (cleaned_stats) computed after impute+clip."
+  },
+  "preview_png": "C:\\Users\\sadha\\new-forest-fire\\backend\\data\\chhindwara\\chhindwara_preprocessed_data\\Chhindwara_Apr10_15_2022_preview.png"
+}
